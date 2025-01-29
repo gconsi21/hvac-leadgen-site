@@ -5,7 +5,13 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
 const app = express();
-app.use(cors());
+const cors = require('cors');
+app.use(cors({
+    origin: '*', 
+    methods: 'GET, POST',
+    allowedHeaders: 'Content-Type'
+}));
+
 app.use(bodyParser.json());
 
 // Connect to MongoDB
