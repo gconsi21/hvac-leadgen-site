@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVAC Repair Baltimore - Get a Free Quote</title>
+    <link rel="stylesheet" href="./styles/style.css">
+</head>
+<body>
+    <header>
+        <h1>Baltimore HVAC Pros</h1>
+        <p>Fast & Reliable HVAC Repairs – Get a Free Quote in 60 Seconds!</p>
+        <button onclick="callNow()">📞 Call Now: (443) XXX-XXXX</button>
+    </header>
+
+    <section id="lead-form">
+        <h2>Request Your Free HVAC Quote</h2>
+        <form id="quote-form">
+            <label for="name">Name:</label>
+            <input type="text" id="name" placeholder="John Doe" required>
+            
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" placeholder="(443) 123-4567" required>
+
+            <label for="zip">Zip Code:</label>
+            <input type="text" id="zip" placeholder="21201" required>
+
+            <label for="service">Select Service:</label>
+            <select id="service">
+                <option>Emergency HVAC Repair</option>
+                <option>AC Installation & Repair</option>
+                <option>Heating & Furnace Repair</option>
+                <option>Duct Cleaning</option>
+                <option>Commercial HVAC Services</option>
+            </select>
+
+            <button type="submit">Get My Free Quote</button>
+        </form>
+    </section>
+
+    <footer>
+        <p>&copy; <span id="year"></span> HVAC Lead Connect. All rights reserved.</p>
+
+<script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+    </footer>
+
+    <script src="./src/script.js"></script>
+</body>
+</html>
