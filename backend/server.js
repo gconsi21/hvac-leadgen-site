@@ -1,7 +1,5 @@
 require('dotenv').config({ path: __dirname + '/.env' });
 
-console.log("🔍 Checking MONGO_URI:", process.env.MONGO_URI); // debugging
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -16,26 +14,19 @@ app.get('/', (req, res) => {
     res.send('HVAC Lead API is running...');
 });
 
-//debugging
-if (!process.env.MONGO_URI) {
-    console.error("MONGO_URI is missing!");
-} else {
-    mongoose.connect(process.env.MONGO_URI)
-        .then(() => console.log("MongoDB Connected"))
-        .catch(err => console.error("MongoDB Connection Error:", err));
-}
-
-// Connect to MongoDB
+// Connect to MongoDB and start server
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-})
-    .then(() => console.log("MongoDB Connected"))
-    .catch(err => {
-        console.error("MongoDB Connection Error:", err);
-        process.exit(1); // Exit if MongoDB connection fails
-    });
-
+}).then(() => {
+    console.log("MongoDB Connected");
+    const PORT = process.env.PORT || 5500;
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}).catch(err => {
+    console.error("MongoDB Connection Error:", err);
+    process.exit(1);
+});
+    
 // Define Lead Schema Globally
 const LeadSchema = new mongoose.Schema({
     name: String,
@@ -45,18 +36,6 @@ const LeadSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
 });
 const Lead = mongoose.model('Lead', LeadSchema);
-
-app.get('/api/leads', async (req, res) => {
-    try {
-        const Lead = mongoose.model('Lead');
-        const leads = await Lead.find({});
-        res.status(200).json(leads);
-    } catch (error) {
-        console.error("Error fetching leads:", error);
-        res.status(500).json({ error: "Failed to fetch leads" });
-    }
-});
-
 
 // API Route: Store Lead
 app.post('/api/leads', async (req, res) => {
@@ -78,6 +57,13 @@ app.post('/api/leads', async (req, res) => {
     }
 });
 
-// Start Server
-const PORT = process.env.PORT || 5500;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// API Fetch
+app.get('/api/leads', async (req, res) => {
+    try {
+        const leads = await Lead.find({});
+        res.status(200).json(leads);
+    } catch (error) {
+        console.error("Error fetching leads:", error);
+        res.status(500).json({ error: "Failed to fetch leads" });
+    }
+});
