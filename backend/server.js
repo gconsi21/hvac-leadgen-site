@@ -6,28 +6,33 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
-app.use(cors()); // Allows frontend to connect
-app.use(bodyParser.json()); // Parses JSON requests
+app.use(cors());
+app.use(bodyParser.json());
 
-// Root route for health check
+const API_KEY = process.env.API_KEY;
+const API_KEY_FRONTEND = process.env.API_KEY_FRONTEND;
+
 app.get('/', (req, res) => {
     res.send('HVAC Lead API is running...');
 });
 
-// Connect to MongoDB and start server
+app.get('/api/config', (req, res) => {
+    res.json({ apiKey: API_KEY_FRONTEND });
+});
+
 mongoose.connect(process.env.MONGO_URI, {
+    dbName: "leadsDB",
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {
-    console.log(`Connected to MongoDB: ${mongoose.connection.name}`);
+    console.log(`MongoDB Connected to: ${mongoose.connection.name}`);
     const PORT = process.env.PORT || 5500;
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }).catch(err => {
     console.error("MongoDB Connection Error:", err);
     process.exit(1);
 });
-    
-// Define Lead Schema Globally
+
 const LeadSchema = new mongoose.Schema({
     name: String,
     phone: String,
@@ -35,14 +40,20 @@ const LeadSchema = new mongoose.Schema({
     service: String,
     timestamp: { type: Date, default: Date.now }
 });
-const Lead = mongoose.model('Lead', LeadSchema, 'leads');
+const Lead = mongoose.model('Lead', LeadSchema);
 
-// API Route: Store Lead
+app.use((req, res, next) => {
+    const allowedRoutes = ["/", "/api/config", "/api/leads"];
+    if (!allowedRoutes.includes(req.path) && req.headers['x-api-key'] !== API_KEY) {
+        return res.status(403).json({ error: "Unauthorized access" });
+    }
+    next();
+});
+
 app.post('/api/leads', async (req, res) => {
     try {
         const { name, phone, zip, service } = req.body;
 
-        // Ensure required fields are present
         if (!name || !phone || !zip) {
             return res.status(400).json({ error: "Missing required fields" });
         }
@@ -57,11 +68,10 @@ app.post('/api/leads', async (req, res) => {
     }
 });
 
-// API Fetch
 app.get('/api/leads', async (req, res) => {
     try {
         const leads = await Lead.find({});
-        console.log("Fetched Leads from DB:", leads); // Debugging 
+        console.log("Leads Fetched:", leads);
         res.status(200).json(leads);
     } catch (error) {
         console.error("Error fetching leads:", error);
