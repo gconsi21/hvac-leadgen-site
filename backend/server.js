@@ -35,7 +35,7 @@ const LeadSchema = new mongoose.Schema({
     service: String,
     timestamp: { type: Date, default: Date.now }
 });
-const Lead = mongoose.model('Lead', LeadSchema);
+const Lead = mongoose.model('Lead', LeadSchema, 'leads');
 
 // API Route: Store Lead
 app.post('/api/leads', async (req, res) => {
@@ -61,6 +61,7 @@ app.post('/api/leads', async (req, res) => {
 app.get('/api/leads', async (req, res) => {
     try {
         const leads = await Lead.find({});
+        console.log("Fetched Leads from DB:", leads); // Debugging 
         res.status(200).json(leads);
     } catch (error) {
         console.error("Error fetching leads:", error);
