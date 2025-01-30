@@ -43,12 +43,15 @@ const LeadSchema = new mongoose.Schema({
 const Lead = mongoose.model('Lead', LeadSchema);
 
 app.use((req, res, next) => {
-    const allowedRoutes = ["/", "/api/config", "/api/leads"];
-    if (!allowedRoutes.includes(req.path) && req.headers['x-api-key'] !== API_KEY) {
+    if (req.path.startsWith("/api/leads") && req.method === "GET") {
+        return next();
+    }
+    if (!req.headers['x-api-key'] || req.headers['x-api-key'] !== API_KEY) {
         return res.status(403).json({ error: "Unauthorized access" });
     }
     next();
 });
+
 
 app.post('/api/leads', async (req, res) => {
     try {
