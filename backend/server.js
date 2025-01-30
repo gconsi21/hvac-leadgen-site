@@ -1,5 +1,7 @@
 require('dotenv').config({ path: __dirname + '/.env' });
 
+console.log("🔍 Checking MONGO_URI:", process.env.MONGO_URI); // debugging
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -13,6 +15,15 @@ app.use(bodyParser.json()); // Parses JSON requests
 app.get('/', (req, res) => {
     res.send('HVAC Lead API is running...');
 });
+
+//debugging
+if (!process.env.MONGO_URI) {
+    console.error("MONGO_URI is missing!");
+} else {
+    mongoose.connect(process.env.MONGO_URI)
+        .then(() => console.log("MongoDB Connected"))
+        .catch(err => console.error("MongoDB Connection Error:", err));
+}
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
@@ -28,6 +39,18 @@ const LeadSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
 });
 const Lead = mongoose.model('Lead', LeadSchema);
+
+app.get('/api/leads', async (req, res) => {
+    try {
+        const Lead = mongoose.model('Lead');
+        const leads = await Lead.find({});
+        res.status(200).json(leads);
+    } catch (error) {
+        console.error("Error fetching leads:", error);
+        res.status(500).json({ error: "Failed to fetch leads" });
+    }
+});
+
 
 // API Route: Store Lead
 app.post('/api/leads', async (req, res) => {
