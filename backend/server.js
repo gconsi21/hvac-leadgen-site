@@ -42,17 +42,6 @@ const LeadSchema = new mongoose.Schema({
 });
 const Lead = mongoose.model('Lead', LeadSchema);
 
-app.use((req, res, next) => {
-    if (req.path.startsWith("/api/leads") && req.method === "GET") {
-        return next();
-    }
-    if (!req.headers['x-api-key'] || req.headers['x-api-key'] !== API_KEY) {
-        return res.status(403).json({ error: "Unauthorized access" });
-    }
-    next();
-});
-
-
 app.post('/api/leads', async (req, res) => {
     try {
         const { name, phone, zip, service } = req.body;
@@ -80,4 +69,14 @@ app.get('/api/leads', async (req, res) => {
         console.error("Error fetching leads:", error);
         res.status(500).json({ error: "Failed to fetch leads" });
     }
+});
+
+app.use((req, res, next) => {
+    if (req.path.startsWith("/api/leads") && req.method === "GET") {
+        return next();
+    }
+    if (!req.headers['x-api-key'] || req.headers['x-api-key'] !== API_KEY) {
+        return res.status(403).json({ error: "Unauthorized access" });
+    }
+    next();
 });
