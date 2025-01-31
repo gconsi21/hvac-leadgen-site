@@ -4,13 +4,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const helmet = require('helmet');
-const bcrypt = require('bcryptjs');
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.use(helmet());
 
 const API_KEY = process.env.API_KEY;
 const API_KEY_FRONTEND = process.env.API_KEY_FRONTEND;
@@ -69,8 +66,7 @@ app.post('/api/leads', async (req, res) => {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        const hashedPhone = await bcrypt.hash(phone, 10);
-        const newLead = new Lead({ name, phone: hashedPhone, zip, service });
+        const newLead = new Lead({ name, phone, zip, service });
         await newLead.save();
 
         res.status(201).json({ message: "Lead stored securely", lead: newLead });
