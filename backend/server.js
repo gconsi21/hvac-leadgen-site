@@ -71,12 +71,20 @@ app.get('/api/leads', async (req, res) => {
     }
 });
 
+// Define routes first
+app.post('/api/leads', async (req, res) => { /* Lead storage logic */ });
+app.get('/api/leads', async (req, res) => { /* Fetch leads logic */ });
+
+// Apply API key authentication AFTER defining routes
 app.use((req, res, next) => {
-    if (req.path.startsWith("/api/leads") && req.method === "GET") {
-        return next();
-    }
-    if (!req.headers['x-api-key'] || req.headers['x-api-key'] !== API_KEY) {
+    console.log(`Request to ${req.path} with API key: ${req.headers['x-api-key']}`);
+
+    const allowedRoutes = ["/", "/api/config"];
+    if (!allowedRoutes.includes(req.path) && req.headers['x-api-key'] !== API_KEY) {
+        console.log("Unauthorized request blocked.");
         return res.status(403).json({ error: "Unauthorized access" });
     }
+
+    console.log("Authorized request allowed.");
     next();
 });
