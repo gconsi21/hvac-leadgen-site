@@ -11,5 +11,3 @@ Thumbs.db
 
 # Ignore VSCode settings
 .vscode/
-
-package.json
