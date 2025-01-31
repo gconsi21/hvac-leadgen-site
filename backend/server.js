@@ -53,25 +53,33 @@ const Lead = mongoose.model('Lead', LeadSchema);
 
 app.use((req, res, next) => {
     console.log(`Checking API key for: ${req.path}`);
-    
-    if (req.path.startsWith("/api/")) {
-        console.log(`Protecting route: ${req.path}`);
-        console.log(`Received API Key: ${req.headers['x-api-key']}`);
 
+    // Require API key for all API routes EXCEPT form submissions
+    if (req.path.startsWith("/api/leads") && req.method !== "POST") {
         if (!req.headers['x-api-key'] || req.headers['x-api-key'] !== API_KEY) {
             console.log("Unauthorized request blocked.");
             return res.status(403).json({ error: "Unauthorized access" });
         }
     }
+
     next();
 });
 
-app.post('/api/leads', async (req, res) => {
+
+const leadLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 3, // Limit each IP to 3 lead submissions per minute
+    message: { error: "Too many requests. Please try again later." }
+});
+
+// Apply rate limit
+app.post('/api/leads', leadLimiter, async (req, res) => {
     try {
         const { name, phone, zip, service } = req.body;
         if (!name || !phone || !zip) {
             return res.status(400).json({ error: "Missing required fields" });
         }
+
         const newLead = new Lead({ name, phone, zip, service });
         await newLead.save();
         res.status(201).json({ message: "Lead stored successfully", lead: newLead });
