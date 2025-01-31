@@ -12,6 +12,8 @@ app.use(bodyParser.json());
 const API_KEY = process.env.API_KEY;
 const API_KEY_FRONTEND = process.env.API_KEY_FRONTEND;
 
+console.log("API_KEY:", API_KEY ? "Loaded" : "NOT LOADED");
+
 app.get('/', (req, res) => {
     res.send('HVAC Lead API is running...');
 });
@@ -42,17 +44,29 @@ const LeadSchema = new mongoose.Schema({
 });
 const Lead = mongoose.model('Lead', LeadSchema);
 
+app.use((req, res, next) => {
+    console.log(`Checking API key for: ${req.path}`);
+    
+    if (req.path.startsWith("/api/")) {
+        console.log(`Protecting route: ${req.path}`);
+        console.log(`Received API Key: ${req.headers['x-api-key']}`);
+
+        if (!req.headers['x-api-key'] || req.headers['x-api-key'] !== API_KEY) {
+            console.log("Unauthorized request blocked.");
+            return res.status(403).json({ error: "Unauthorized access" });
+        }
+    }
+    next();
+});
+
 app.post('/api/leads', async (req, res) => {
     try {
         const { name, phone, zip, service } = req.body;
-
         if (!name || !phone || !zip) {
             return res.status(400).json({ error: "Missing required fields" });
         }
-
         const newLead = new Lead({ name, phone, zip, service });
         await newLead.save();
-
         res.status(201).json({ message: "Lead stored successfully", lead: newLead });
     } catch (error) {
         console.error("Error storing lead:", error);
@@ -69,22 +83,4 @@ app.get('/api/leads', async (req, res) => {
         console.error("Error fetching leads:", error);
         res.status(500).json({ error: "Failed to fetch leads" });
     }
-});
-
-// Define routes first
-app.post('/api/leads', async (req, res) => { /* Lead storage logic */ });
-app.get('/api/leads', async (req, res) => { /* Fetch leads logic */ });
-
-// Apply API key authentication AFTER defining routes
-app.use((req, res, next) => {
-    console.log(`Request to ${req.path} with API key: ${req.headers['x-api-key']}`);
-
-    const allowedRoutes = ["/", "/api/config"];
-    if (!allowedRoutes.includes(req.path) && req.headers['x-api-key'] !== API_KEY) {
-        console.log("Unauthorized request blocked.");
-        return res.status(403).json({ error: "Unauthorized access" });
-    }
-
-    console.log("Authorized request allowed.");
-    next();
 });
