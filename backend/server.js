@@ -4,18 +4,13 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const bcrypt = require('bcryptjs');
 
 const app = express();
-const corsOptions = {
-    origin: ["http://127.0.0.1:5500", "https://frontenddomain.com"], 
-    methods: "GET,POST,PUT,DELETE",
-    allowedHeaders: "Content-Type, x-api-key"
-};
-
-app.use(cors(corsOptions));
-
+app.use(cors());
 app.use(bodyParser.json());
+app.use(helmet());
 
 const API_KEY = process.env.API_KEY;
 const API_KEY_FRONTEND = process.env.API_KEY_FRONTEND;
@@ -54,36 +49,31 @@ const Lead = mongoose.model('Lead', LeadSchema);
 
 app.use((req, res, next) => {
     console.log(`Checking API key for: ${req.path}`);
+    
+    if (req.path.startsWith("/api/")) {
+        console.log(`Protecting route: ${req.path}`);
+        console.log(`Received API Key: ${req.headers['x-api-key']}`);
 
-    // Require API key for all API routes EXCEPT form submissions
-    if (req.path.startsWith("/api/leads") && req.method !== "POST") {
         if (!req.headers['x-api-key'] || req.headers['x-api-key'] !== API_KEY) {
             console.log("Unauthorized request blocked.");
             return res.status(403).json({ error: "Unauthorized access" });
         }
     }
-
     next();
 });
 
-
-const leadLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 3, // Limit each IP to 3 lead submissions per minute
-    message: { error: "Too many requests. Please try again later." }
-});
-
-// Apply rate limit
-app.post('/api/leads', leadLimiter, async (req, res) => {
+app.post('/api/leads', async (req, res) => {
     try {
         const { name, phone, zip, service } = req.body;
         if (!name || !phone || !zip) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        const newLead = new Lead({ name, phone, zip, service });
+        const hashedPhone = await bcrypt.hash(phone, 10);
+        const newLead = new Lead({ name, phone: hashedPhone, zip, service });
         await newLead.save();
-        res.status(201).json({ message: "Lead stored successfully", lead: newLead });
+
+        res.status(201).json({ message: "Lead stored securely", lead: newLead });
     } catch (error) {
         console.error("Error storing lead:", error);
         res.status(500).json({ error: "Failed to store lead" });
