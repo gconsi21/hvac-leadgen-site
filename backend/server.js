@@ -6,7 +6,14 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
-app.use(cors());
+
+const corsOptions = {
+    origin: ["http://127.0.0.1:5500", "https://frontenddomain.com"],
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type, x-api-key"
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 const API_KEY = process.env.API_KEY;
@@ -46,10 +53,11 @@ const Lead = mongoose.model('Lead', LeadSchema);
 
 app.use((req, res, next) => {
     console.log(`Checking API key for: ${req.path}`);
-    
-    if (req.path.startsWith("/api/")) {
+
+    // Only require API key for GET /api/leads
+    if (req.path.startsWith("/api/leads") && req.method === "GET") {
         console.log(`Protecting route: ${req.path}`);
-        console.log(`Received API Key: ${req.headers['x-api-key']}`);
+        console.log(`Received API Key: ${req.headers['x-api-key'] ? "Present" : "Missing"}`);
 
         if (!req.headers['x-api-key'] || req.headers['x-api-key'] !== API_KEY) {
             console.log("Unauthorized request blocked.");
@@ -58,6 +66,7 @@ app.use((req, res, next) => {
     }
     next();
 });
+
 
 app.post('/api/leads', async (req, res) => {
     try {
