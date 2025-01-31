@@ -6,7 +6,14 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
-app.use(cors());
+const corsOptions = {
+    origin: ["http://127.0.0.1:5500", "https://frontenddomain.com"], 
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type, x-api-key"
+};
+
+app.use(cors(corsOptions));
+
 app.use(bodyParser.json());
 
 const API_KEY = process.env.API_KEY;
