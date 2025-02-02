@@ -8,9 +8,10 @@ const bodyParser = require('body-parser');
 const app = express();
 
 const corsOptions = {
-    origin: ["http://127.0.0.1:5500", "https://frontenddomain.com"],
+    origin: ["http://127.0.0.1:5500", "https://your-frontend-domain.com"],
     methods: "GET,POST,PUT,DELETE",
-    allowedHeaders: "Content-Type, x-api-key"
+    allowedHeaders: "Content-Type, x-api-key",
+    credentials: true
 };
 
 app.use(cors(corsOptions));
