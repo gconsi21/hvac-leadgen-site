@@ -8,17 +8,14 @@ const bodyParser = require('body-parser');
 const app = express();
 
 const corsOptions = {
-    origin: ["http://127.0.0.1:5500", "https://your-frontend-domain.com"],
+    origin: "*",
     methods: "GET,POST,PUT,DELETE,OPTIONS",
     allowedHeaders: "Content-Type, x-api-key",
-    credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204
+    credentials: true
 };
 
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
-app.options('*', cors(corsOptions));
 
 const API_KEY = process.env.API_KEY;
 const API_KEY_FRONTEND = process.env.API_KEY_FRONTEND;
@@ -57,8 +54,7 @@ const Lead = mongoose.model('Lead', LeadSchema);
 
 app.use((req, res, next) => {
     console.log(`Checking API key for: ${req.path}`);
-
-    // Only require API key for GET /api/leads
+    
     if (req.path.startsWith("/api/leads") && req.method === "GET") {
         console.log(`Protecting route: ${req.path}`);
         console.log(`Received API Key: ${req.headers['x-api-key'] ? "Present" : "Missing"}`);
@@ -71,6 +67,7 @@ app.use((req, res, next) => {
     next();
 });
 
+app.options('*', cors(corsOptions));
 
 app.post('/api/leads', async (req, res) => {
     try {
@@ -82,7 +79,7 @@ app.post('/api/leads', async (req, res) => {
         const newLead = new Lead({ name, phone, zip, service });
         await newLead.save();
 
-        res.status(201).json({ message: "Lead stored securely", lead: newLead });
+        res.status(201).json({ message: "Lead stored successfully", lead: newLead });
     } catch (error) {
         console.error("Error storing lead:", error);
         res.status(500).json({ error: "Failed to store lead" });
