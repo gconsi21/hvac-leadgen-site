@@ -9,13 +9,16 @@ const app = express();
 
 const corsOptions = {
     origin: ["http://127.0.0.1:5500", "https://your-frontend-domain.com"],
-    methods: "GET,POST,PUT,DELETE",
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
     allowedHeaders: "Content-Type, x-api-key",
-    credentials: true
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
+app.options('*', cors(corsOptions));
 
 const API_KEY = process.env.API_KEY;
 const API_KEY_FRONTEND = process.env.API_KEY_FRONTEND;
