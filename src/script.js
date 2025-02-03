@@ -16,7 +16,7 @@ document.getElementById('quote-form').addEventListener('submit', async function(
     try {
         console.log("Submitting lead:", leadData);
 
-        const response = await fetch('https://hvac-backend.onrender.com/api/leads', {
+        const response = await fetch('https://hvac-backend-iuof.onrender.com/api/leads', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
