@@ -7,18 +7,14 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
-// Force CORS headers globally
-app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-api-key");
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    
-    if (req.method === "OPTIONS") {
-        return res.sendStatus(204);
-    }
-    next();
-});
+// Revert to original CORS configuration
+const corsOptions = {
+    origin: ["http://127.0.0.1:5500", "https://hvac-frontend.com"], // Allow only frontend origins
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: ["Content-Type", "x-api-key"],
+    credentials: false
+};
+app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 
