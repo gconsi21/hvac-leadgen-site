@@ -83,13 +83,16 @@ app.post("/api/leads", leadLimiter, async (req, res) => {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        // Validate phone number format (10 digits only)
-        if (!/^\d{10}$/.test(phone)) {
+        // Remove non-numeric characters from phone number
+        const sanitizedPhone = phone.replace(/\D/g, "");
+
+        // Validate phone number format (must be exactly 10 digits after filtering)
+        if (sanitizedPhone.length !== 10) {
             return res.status(400).json({ error: "Invalid phone number. Must be 10 digits." });
         }
 
-        // Hash the phone number before saving
-        const hashedPhone = await bcrypt.hash(phone, 10);
+        // Hash the sanitized phone number before saving
+        const hashedPhone = await bcrypt.hash(sanitizedPhone, 10);
 
         const newLead = new Lead({ name, phone: hashedPhone, zip, service });
         await newLead.save();
