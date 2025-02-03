@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const rateLimit = require("express-rate-limit");
+const bcrypt = require('bcryptjs');
 
 const app = express();
 
@@ -82,10 +83,18 @@ app.post("/api/leads", leadLimiter, async (req, res) => {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        const newLead = new Lead({ name, phone, zip, service });
+        // Validate phone number format (10 digits only)
+        if (!/^\d{10}$/.test(phone)) {
+            return res.status(400).json({ error: "Invalid phone number. Must be 10 digits." });
+        }
+
+        // Hash the phone number before saving
+        const hashedPhone = await bcrypt.hash(phone, 10);
+
+        const newLead = new Lead({ name, phone: hashedPhone, zip, service });
         await newLead.save();
 
-        res.status(201).json({ message: "Lead stored successfully", lead: newLead });
+        res.status(201).json({ message: "Lead stored securely", lead: newLead });
     } catch (error) {
         console.error("Error storing lead:", error);
         res.status(500).json({ error: "Failed to store lead" });
