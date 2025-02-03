@@ -8,19 +8,14 @@ const bodyParser = require('body-parser');
 const app = express();
 
 const corsOptions = {
-    origin: function (origin, callback) {
-        if (!origin || ["http://127.0.0.1:5500", "https://your-frontend-domain.com"].includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error("CORS policy does not allow this origin"));
-        }
-    },
+    origin: "*", //TEMPORARY: Allow all origins
     methods: "GET,POST,PUT,DELETE,OPTIONS",
     allowedHeaders: ["Content-Type", "x-api-key"],
-    credentials: true
+    credentials: false
 };
 
 app.use(cors(corsOptions));
+
 app.use(bodyParser.json());
 
 const API_KEY = process.env.API_KEY;
