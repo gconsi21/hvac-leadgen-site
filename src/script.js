@@ -29,6 +29,11 @@ document.getElementById('quote-form').addEventListener('submit', async function(
             return;
         }
 
+        if (response.status === 400) { 
+            alert("Error! Phone number is not valid.");
+            return;
+        }
+
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
         const result = await response.json();
