@@ -6,6 +6,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const rateLimit = require("express-rate-limit");
 const bcrypt = require('bcryptjs');
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 
@@ -61,8 +63,15 @@ const LeadSchema = new mongoose.Schema({
 });
 const Lead = mongoose.model('Lead', LeadSchema);
 
+// API logging
+const logRequest = (req, status) => {
+    const logMessage = `[${new Date().toISOString()}] ${req.method} ${req.path} - IP: ${req.ip} - Status: ${status}\n`;
+    fs.appendFileSync(path.join(__dirname, "api.log"), logMessage);
+};
+
 app.use((req, res, next) => {
     console.log(`Checking API key for: ${req.path}`);
+    logRequest(req, "PENDING");
     
     if (req.path.startsWith("/api/leads") && req.method === "GET") {
         console.log(`Protecting route: ${req.path}`);
@@ -70,6 +79,7 @@ app.use((req, res, next) => {
 
         if (!req.headers['x-api-key'] || req.headers['x-api-key'] !== API_KEY) {
             console.log("Unauthorized request blocked.");
+            logRequest(req, "403 Unauthorized");
             return res.status(403).json({ error: "Unauthorized access" });
         }
     }
@@ -97,9 +107,11 @@ app.post("/api/leads", leadLimiter, async (req, res) => {
         const newLead = new Lead({ name, phone: hashedPhone, zip, service });
         await newLead.save();
 
+        logRequest(req, "201 Created");
         res.status(201).json({ message: "Lead stored securely", lead: newLead });
     } catch (error) {
         console.error("Error storing lead:", error);
+        logRequest(req, "500 Internal Server Error");
         res.status(500).json({ error: "Failed to store lead" });
     }
 });
@@ -108,9 +120,11 @@ app.get('/api/leads', async (req, res) => {
     try {
         const leads = await Lead.find({});
         console.log("Leads Fetched:", leads);
+        logRequest(req, "200 OK");
         res.status(200).json(leads);
     } catch (error) {
         console.error("Error fetching leads:", error);
+        logRequest(req, "500 Internal Server Error");
         res.status(500).json({ error: "Failed to fetch leads" });
     }
 });
