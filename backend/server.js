@@ -8,10 +8,10 @@ const bodyParser = require('body-parser');
 const app = express();
 
 const corsOptions = {
-    origin: "*",
+    origin: ["http://127.0.0.1:5500", "https://your-frontend-domain.com"],
     methods: "GET,POST,PUT,DELETE,OPTIONS",
-    allowedHeaders: "Content-Type, x-api-key",
-    credentials: true
+    allowedHeaders: ["Content-Type", "x-api-key"],
+    credentials: false
 };
 
 app.use(cors(corsOptions));
@@ -67,7 +67,12 @@ app.use((req, res, next) => {
     next();
 });
 
-app.options('*', cors(corsOptions));
+app.options('*', (req, res) => {
+    res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, x-api-key");
+    res.sendStatus(204);
+});
 
 app.post('/api/leads', async (req, res) => {
     try {
