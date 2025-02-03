@@ -4,6 +4,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 
@@ -20,6 +21,12 @@ app.use(bodyParser.json());
 
 const API_KEY = process.env.API_KEY;
 const API_KEY_FRONTEND = process.env.API_KEY_FRONTEND;
+
+const leadLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 5, // Limit each IP to 5 requests per hour
+    message: { error: "Too many submissions. Try again later." }
+});
 
 console.log("API_KEY:", API_KEY ? "Loaded" : "NOT LOADED");
 
@@ -68,7 +75,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.post('/api/leads', async (req, res) => {
+app.post("/api/leads", leadLimiter, async (req, res) => {
     try {
         const { name, phone, zip, service } = req.body;
         if (!name || !phone || !zip) {
