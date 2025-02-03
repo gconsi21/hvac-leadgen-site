@@ -7,18 +7,16 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
-const corsOptions = {
-    origin: "*", //TEMPORARY: Allow all origins
-    methods: "GET,POST,PUT,DELETE,OPTIONS",
-    allowedHeaders: ["Content-Type", "x-api-key"],
-    credentials: false
-};
-
-app.use(cors(corsOptions));
+// Force CORS headers globally
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, x-api-key");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-api-key");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(204);
+    }
     next();
 });
 
