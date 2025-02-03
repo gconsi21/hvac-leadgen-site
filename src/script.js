@@ -24,6 +24,11 @@ document.getElementById('quote-form').addEventListener('submit', async function(
             body: JSON.stringify(leadData)
         });
 
+        if (response.status === 429) { 
+            alert("You have submitted too many requests. Please try again later.");
+            return;
+        }
+
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
         const result = await response.json();
